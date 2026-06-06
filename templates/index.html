@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vastu Planner AI</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🕉️</span>
+                    <div class="logo-text">
+                        <h1>Vastu Planner</h1>
+                        <span class="logo-sub">AI Architecture Engine</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="design"><span class="nav-icon">🎯</span><span class="nav-label">Design</span></button>
+                <button class="nav-item" data-tab="floorplan"><span class="nav-icon">🏠</span><span class="nav-label">Floor Plan</span><span class="nav-badge" id="plan-badge" style="display:none;">✓</span></button>
+                <button class="nav-item" data-tab="elevation"><span class="nav-icon">🏗️</span><span class="nav-label">Elevation</span></button>
+                <button class="nav-item" data-tab="image"><span class="nav-icon">🎨</span><span class="nav-label">Concept Image</span></button>
+                <button class="nav-item" data-tab="analysis"><span class="nav-icon">📊</span><span class="nav-label">Analysis</span></button>
+                <button class="nav-item" data-tab="vastu"><span class="nav-icon">🧭</span><span class="nav-label">Vastu Guide</span></button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span class="status-text" id="ai-status-text">Ready</span>
+                </div>
+                <div class="engine-version" id="ai-services">checking...</div>
+            </div>
+        </aside>
+
+        <main id="main-content">
+            <!-- DESIGN TAB -->
+            <div class="tab-content active" id="tab-design">
+                <div class="design-container">
+                    <div class="design-hero">
+                        <h1>Describe Your Dream Home</h1>
+                        <p>Tell me about the house you want — I'll generate a Vastu-compliant architectural plan with floor layout, elevation, and concept image.</p>
+                    </div>
+                    <div class="design-input-area">
+                        <textarea id="prompt-input" placeholder="Example: I want a modern 3BHK house on a 60x45 plot facing north with a big kitchen, pooja room, garden, and parking for 2 cars. I also need a study room and guest bedroom." rows="4"></textarea>
+                        <button id="generate-btn" class="btn btn-primary btn-generate">
+                            <span class="btn-icon">✨</span> Generate Plan
+                        </button>
+                    </div>
+                    <div class="design-examples">
+                        <span>Try: </span>
+                        <button class="example-chip" data-prompt="2BHK house on 50x40 plot east facing, living room, kitchen, garden, parking">🏡 2BHK East Facing</button>
+                        <button class="example-chip" data-prompt="3BHK modern villa on 60x45 plot north facing, pooja room, study, guest room, big kitchen, garden, parking">🏰 3BHK Modern Villa</button>
+                        <button class="example-chip" data-prompt="Traditional 4BHK house on 80x60 plot south facing, pooja room, store room, garden, parking for 3 cars, dining room">🏠 4BHK Traditional</button>
+                    </div>
+                    <div class="design-loading" id="design-loading" style="display:none;">
+                        <div class="spinner"></div>
+                        <div class="loading-steps">
+                            <span id="step-parse">🔍 Parsing your requirements...</span>
+                            <span id="step-layout">📐 Generating room layout...</span>
+                            <span id="step-render">🎨 Rendering floor plan...</span>
+                            <span id="step-image">🖼️ Creating concept image...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLOOR PLAN TAB -->
+            <div class="tab-content" id="tab-floorplan">
+                <div class="view-container">
+                    <div class="view-header">
+                        <div>
+                            <h2>Architectural Floor Plan</h2>
+                            <p class="view-subtitle" id="fp-subtitle">CAD-style plan with room layout, zone colors, and dimensions</p>
+                        </div>
+                        <div class="view-actions">
+                            <button id="download-svg" class="btn btn-outline" disabled>⬇ Download</button>
+                            <button class="btn btn-primary" onclick="switchTab('design')">✏️ New Design</button>
+                        </div>
+                    </div>
+                    <div id="fp-loading" class="loading-state" style="display:none;"><div class="spinner"></div><h3>Generating...</h3></div>
+                    <div id="fp-content" class="view-canvas-wrapper" style="display:none;"><div id="fp-svg" class="svg-container"></div></div>
+                    <div id="fp-empty" class="empty-state"><div class="empty-icon">🏗️</div><h3>No Plan Yet</h3><p>Describe your dream home in the Design tab.</p><button class="btn btn-primary btn-lg" onclick="switchTab('design')">Start →</button></div>
+                </div>
+            </div>
+
+            <!-- ELEVATION TAB -->
+            <div class="tab-content" id="tab-elevation">
+                <div class="view-container">
+                    <div class="view-header"><div><h2>Building Elevation</h2><p class="view-subtitle">Front view with floor breakdown</p></div></div>
+                    <div id="elev-content" class="view-canvas-wrapper" style="display:none;"><div id="elev-svg" class="svg-container"></div></div>
+                    <div id="elev-empty" class="empty-state"><div class="empty-icon">🏗️</div><h3>No Elevation Yet</h3><p>Generate a plan first.</p><button class="btn btn-primary btn-lg" onclick="switchTab('design')">Start →</button></div>
+                </div>
+            </div>
+
+            <!-- CONCEPT IMAGE TAB -->
+            <div class="tab-content" id="tab-image">
+                <div class="view-container">
+                    <div class="view-header"><div><h2>Concept House Image</h2><p class="view-subtitle">AI-generated visualization based on your plan</p></div></div>
+                    <div id="img-content" class="view-canvas-wrapper" style="display:none;padding:20px;text-align:center;"><div id="img-container"></div><p class="img-note">💡 Set DEEPAI_API_KEY for photorealistic AI images, or use the generated SVG concept</p></div>
+                    <div id="img-empty" class="empty-state"><div class="empty-icon">🎨</div><h3>No Image Yet</h3><p>Generate a plan first.</p><button class="btn btn-primary btn-lg" onclick="switchTab('design')">Start →</button></div>
+                </div>
+            </div>
+
+            <!-- ANALYSIS TAB -->
+            <div class="tab-content" id="tab-analysis">
+                <div class="analysis-container">
+                    <div class="analysis-header"><h2>Plan Analysis</h2><p>Vastu compliance scores and room data</p></div>
+                    <div id="analysis-content" style="display:none;">
+                        <div class="score-card">
+                            <div class="score-circle" id="overall-score">0</div>
+                            <div class="score-info">
+                                <h3>Vastu Compliance</h3>
+                                <p id="score-rating">—</p>
+                                <p id="score-detail" class="score-detail"></p>
+                                <p id="score-source" class="score-detail" style="font-size:11px;margin-top:4px;"></p>
+                            </div>
+                        </div>
+                        <h3 class="section-title">Room Scores</h3>
+                        <div class="room-scores-grid" id="room-scores"></div>
+                        <h3 class="section-title">Suggestions</h3>
+                        <div class="card" id="suggestions-card"><div id="suggestions-list"></div></div>
+                        <h3 class="section-title">Room Layout (feet)</h3>
+                        <div class="card"><div class="table-responsive">
+                            <table><thead><tr><th>Room</th><th>X</th><th>Y</th><th>W</th><th>H</th><th>Area</th><th>Zone</th><th>Score</th></tr></thead>
+                            <tbody id="layout-table-body"></tbody></table>
+                        </div></div>
+                    </div>
+                    <div id="analysis-empty" class="empty-state"><div class="empty-icon">📊</div><h3>No Analysis</h3><p>Generate a plan first.</p><button class="btn btn-primary btn-lg" onclick="switchTab('design')">Start →</button></div>
+                </div>
+            </div>
+
+            <!-- VASTU GUIDE TAB -->
+            <div class="tab-content" id="tab-vastu">
+                <div class="guide-container">
+                    <div class="guide-header"><h2>Vastu Shastra Guide</h2><p>Vastu Purusha Mandala — 9 zones with room compatibility</p></div>
+                    <div class="compass-section">
+                        <div class="compass-wrapper">
+                            <div class="compass-grid">
+                                <div class="compass-cell nw"><span>NW ↑<br><small>Vayu</small><br><em>Guest</em></span></div>
+                                <div class="compass-cell n"><span>N ↑<br><small>Kubera</small><br><em>Living</em></span></div>
+                                <div class="compass-cell ne"><span>NE ↑<br><small>Ishanya</small><br><em>Pooja</em></span></div>
+                                <div class="compass-cell w"><span>W ←<br><small>Varuna</small><br><em>Dining</em></span></div>
+                                <div class="compass-cell c"><span>C<br><small>Brahma</small><br><em>Open</em></span></div>
+                                <div class="compass-cell e"><span>E →<br><small>Indra</small><br><em>Study</em></span></div>
+                                <div class="compass-cell sw"><span>SW ↓<br><small>Nairutya</small><br><em>Master</em></span></div>
+                                <div class="compass-cell s"><span>S ↓<br><small>Yama</small><br><em>Bedroom</em></span></div>
+                                <div class="compass-cell se"><span>SE ↓<br><small>Agni</small><br><em>Kitchen</em></span></div>
+                            </div>
+                            <div class="compass-north-arrow">N ↑</div>
+                        </div>
+                    </div>
+                    <h3 class="section-title">Zone Details</h3>
+                    <div class="zone-cards" id="zone-cards"></div>
+                    <h3 class="section-title">Room Placement</h3>
+                    <div class="table-responsive">
+                        <table><thead><tr><th>Room</th><th>Best Zone</th><th>Alternatives</th><th>Avoid</th><th>Ideal Size</th></tr></thead>
+                        <tbody id="guide-room-body"></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="toast" class="toast"></div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
